@@ -1,75 +1,105 @@
-import { notFound } from 'next/navigation';
-import dbConnect from '@/lib/mongodb';
-import Content from '@/lib/models/Content';
-import Link from 'next/link';
-import { Calendar, Eye, ArrowLeft, Tag, Droplet } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/mongodb";
+import Content from "@/lib/models/Content";
+import Link from "next/link";
+import {
+  Calendar,
+  Eye,
+  ArrowLeft,
+  Tag,
+  Droplet,
+  Home,
+  LayoutDashboard,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
-// This is required for dynamic routes in Next.js 15
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 
 async function getContentBySlug(slug: string) {
   try {
     await dbConnect();
-    const content = await Content.findOne({ slug, status: 'published' });
-    
+    const content = await Content.findOne({ slug, status: "published" });
+
     if (content) {
-      // Increment view count
       content.views = (content.views || 0) + 1;
       await content.save();
-      
       return JSON.parse(JSON.stringify(content));
     }
-    
     return null;
   } catch (error) {
-    console.error('Error fetching content:', error);
+    console.error("Error fetching content:", error);
     return null;
   }
 }
 
-export default async function PublicContentPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export default async function PublicContentPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
-  // Unwrap params
   const { slug } = await params;
-  
-  // Fetch content
   const content = await getContentBySlug(slug);
 
-  // If no content found, show 404
+  // ✅ Check if user is logged in
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session;
+  const isAuthor = session?.user?.id === content?.author?.id;
+
   if (!content) {
     notFound();
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
+      {/* ✅ Smart Header with Auth-aware Navigation */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <Link 
-              href="/"
-              className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition"
+            {/* ✅ Smart Back Button */}
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                <span>Back to Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/"
+                className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to home</span>
+              </Link>
+            )}
+
+            <Link
+              href={isLoggedIn ? "/dashboard" : "/"}
+              className="flex items-center space-x-2"
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to home</span>
-            </Link>
-            
-            <Link href="/" className="flex items-center space-x-2">
               <Droplet className="w-6 h-6 text-blue-400" />
               <span className="text-lg font-bold text-white">Inkdrop</span>
             </Link>
+
+            {/* ✅ Show Edit Button for Author */}
+            {isAuthor && (
+              <Link
+                href={`/content/${content._id}`}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm"
+              >
+                <span>Edit</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       {/* Content */}
       <article className="max-w-4xl mx-auto px-4 py-12">
-        {/* Featured Image */}
         {content.featuredImage && (
           <img
             src={content.featuredImage}
@@ -78,7 +108,6 @@ export default async function PublicContentPage({
           />
         )}
 
-        {/* Meta Info */}
         <div className="flex items-center space-x-4 text-sm text-slate-400 mb-6">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -98,17 +127,16 @@ export default async function PublicContentPage({
           </div>
         </div>
 
-        {/* Title */}
-        <h1 className="text-5xl font-bold text-white mb-6 leading-tight">{content.title}</h1>
+        <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
+          {content.title}
+        </h1>
 
-        {/* Excerpt */}
         {content.excerpt && (
           <p className="text-xl text-slate-300 mb-8 leading-relaxed border-l-4 border-blue-500 pl-6 italic">
             {content.excerpt}
           </p>
         )}
 
-        {/* Tags */}
         {content.tags && content.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
             {content.tags.map((tag: string, index: number) => (
@@ -123,42 +151,70 @@ export default async function PublicContentPage({
           </div>
         )}
 
-        {/* Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent mb-8"></div>
 
-        {/* Content Body */}
         <div className="prose prose-invert prose-lg max-w-none">
           <ReactMarkdown
             components={{
               h1: ({ node, ...props }) => (
-                <h1 className="text-4xl font-bold text-white mt-8 mb-4" {...props} />
+                <h1
+                  className="text-4xl font-bold text-white mt-8 mb-4"
+                  {...props}
+                />
               ),
               h2: ({ node, ...props }) => (
-                <h2 className="text-3xl font-bold text-white mt-6 mb-3" {...props} />
+                <h2
+                  className="text-3xl font-bold text-white mt-6 mb-3"
+                  {...props}
+                />
               ),
               h3: ({ node, ...props }) => (
-                <h3 className="text-2xl font-bold text-white mt-4 mb-2" {...props} />
+                <h3
+                  className="text-2xl font-bold text-white mt-4 mb-2"
+                  {...props}
+                />
               ),
               p: ({ node, ...props }) => (
-                <p className="text-slate-300 leading-relaxed mb-4 text-lg" {...props} />
+                <p
+                  className="text-slate-300 leading-relaxed mb-4 text-lg"
+                  {...props}
+                />
               ),
               a: ({ node, ...props }) => (
-                <a className="text-blue-400 hover:text-blue-300 underline" {...props} />
+                <a
+                  className="text-blue-400 hover:text-blue-300 underline"
+                  {...props}
+                />
               ),
               ul: ({ node, ...props }) => (
-                <ul className="list-disc list-inside text-slate-300 mb-4 space-y-2" {...props} />
+                <ul
+                  className="list-disc list-inside text-slate-300 mb-4 space-y-2"
+                  {...props}
+                />
               ),
               ol: ({ node, ...props }) => (
-                <ol className="list-decimal list-inside text-slate-300 mb-4 space-y-2" {...props} />
+                <ol
+                  className="list-decimal list-inside text-slate-300 mb-4 space-y-2"
+                  {...props}
+                />
               ),
               code: ({ node, ...props }) => (
-                <code className="bg-slate-800 px-2 py-1 rounded text-blue-400 text-sm" {...props} />
+                <code
+                  className="bg-slate-800 px-2 py-1 rounded text-blue-400 text-sm"
+                  {...props}
+                />
               ),
               pre: ({ node, ...props }) => (
-                <pre className="bg-slate-800 p-4 rounded-lg overflow-x-auto mb-4 border border-slate-700" {...props} />
+                <pre
+                  className="bg-slate-800 p-4 rounded-lg overflow-x-auto mb-4 border border-slate-700"
+                  {...props}
+                />
               ),
               blockquote: ({ node, ...props }) => (
-                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4" {...props} />
+                <blockquote
+                  className="border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4"
+                  {...props}
+                />
               ),
               img: ({ node, ...props }) => (
                 <img className="rounded-lg my-6 w-full" {...props} />
@@ -169,28 +225,39 @@ export default async function PublicContentPage({
           </ReactMarkdown>
         </div>
 
-        {/* Author Bio */}
         <div className="mt-12 p-6 bg-slate-900 border border-slate-800 rounded-xl">
           <div className="flex items-start space-x-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0">
               {content.author.name[0].toUpperCase()}
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-1">Written by {content.author.name}</h3>
+              <h3 className="text-xl font-semibold text-white mb-1">
+                Written by {content.author.name}
+              </h3>
               <p className="text-slate-400">{content.author.email}</p>
             </div>
           </div>
         </div>
 
-        {/* Back to Home */}
+        {/* ✅ Smart Navigation Footer */}
         <div className="mt-12 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Home</span>
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span>Back to Dashboard</span>
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+            >
+              <Home className="w-5 h-5" />
+              <span>Back to Home</span>
+            </Link>
+          )}
         </div>
       </article>
     </div>
