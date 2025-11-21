@@ -1,11 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Droplet, Zap, Lock, Layers, Code, Globe, ArrowRight, Check, Menu, X } from 'lucide-react';
+import { Droplet, Zap, Lock, Layers, Code, Globe, ArrowRight, Check, Menu, X, Calendar, Eye } from 'lucide-react';
+
+interface PublicContent {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  featuredImage?: string;
+  createdAt: string;
+  views: number;
+  author: {
+    name: string;
+  };
+  tags?: string[];
+}
 
 export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [recentPosts, setRecentPosts] = useState<PublicContent[]>([]);
+
+  useEffect(() => {
+    fetchRecentPosts();
+  }, []);
+
+  const fetchRecentPosts = async () => {
+    try {
+      const res = await fetch('/api/public/recent');
+      const data = await res.json();
+      if (data.success) {
+        setRecentPosts(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent posts:', error);
+    }
+  };
 
   const features = [
     {
@@ -53,6 +84,7 @@ export default function HomePage() {
             
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="hover:text-blue-400 transition">Features</a>
+              <a href="#recent-posts" className="hover:text-blue-400 transition">Recent Posts</a>
               <Link href="/login" className="hover:text-blue-400 transition">Sign In</Link>
               <Link href="/register" className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition">
                 Get Started
@@ -72,6 +104,7 @@ export default function HomePage() {
           <div className="md:hidden bg-slate-800 border-t border-slate-700">
             <div className="px-4 py-4 space-y-3">
               <a href="#features" className="block hover:text-blue-400 transition">Features</a>
+              <a href="#recent-posts" className="block hover:text-blue-400 transition">Recent Posts</a>
               <Link href="/login" className="block hover:text-blue-400 transition">Sign In</Link>
               <Link href="/register" className="block px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition text-center">
                 Get Started
@@ -110,6 +143,57 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Recent Posts Section */}
+      {recentPosts.length > 0 && (
+        <section id="recent-posts" className="py-20 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold mb-4">Recent Posts</h2>
+              <p className="text-slate-400 text-lg">Check out the latest content</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {recentPosts.slice(0, 6).map((post) => (
+                <Link
+                  key={post._id}
+                  href={`/${post.slug}`}
+                  className="bg-slate-900/50 border border-slate-700/50 rounded-xl overflow-hidden hover:border-blue-500/50 transition group"
+                >
+                  {post.featuredImage && (
+                    <img 
+                      src={post.featuredImage} 
+                      alt={post.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-400 transition">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="text-slate-400 text-sm mb-4 line-clamp-2">{post.excerpt}</p>
+                    )}
+                    <div className="flex items-center justify-between text-sm text-slate-500">
+                      <span>{post.author.name}</span>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Eye className="w-4 h-4" />
+                          <span>{post.views}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features Grid */}
       <section id="features" className="py-20 px-4 bg-slate-800/30">
