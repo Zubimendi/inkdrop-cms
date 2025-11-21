@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ContentForm from '@/components/ContentForm';
-import { IContent } from '@/types/content';
+import { IContent } from '@/lib/models/Content';
 
-export default function EditContent({ params }: { params: { id: string } }) {
+export default function EditContentPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [content, setContent] = useState<IContent | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,11 +45,16 @@ export default function EditContent({ params }: { params: { id: string } }) {
     }
   };
 
-  if (!content) return <div className="p-8">Loading...</div>;
+  if (!content) {
+    return (
+      <div className="p-8">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Edit Content</h1>
       <ContentForm initialData={content} onSubmit={handleSubmit} isLoading={loading} />
     </div>
   );
