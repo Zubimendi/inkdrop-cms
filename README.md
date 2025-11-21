@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🖋️ Inkdrop CMS
 
-## Getting Started
+A lightweight, full-stack content management system built with Next.js 14 and MongoDB. Create, edit, and manage blog posts, pages, and custom content types with a clean, intuitive dashboard.
 
-First, run the development server:
+## ✨ Features
 
+- **CRUD Operations** - Create, read, update, and delete content seamlessly
+- **Content Types** - Support for posts, pages, and custom content
+- **Status Management** - Draft and publish workflow
+- **Auto-generated Slugs** - Clean URLs generated automatically from titles
+- **Responsive Dashboard** - Modern UI built with Tailwind CSS
+- **RESTful API** - Clean API routes for all content operations
+- **TypeScript** - Fully typed for better developer experience
+
+## 🛠️ Tech Stack
+
+- **Frontend/Backend**: Next.js 14 (App Router)
+- **Database**: MongoDB with Mongoose ODM
+- **Styling**: Tailwind CSS
+- **Language**: TypeScript
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- MongoDB Atlas account (or local MongoDB)
+
+### Installation
+
+1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd inkdrop-cms
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Add your MongoDB connection string to `.env.local`:
+```
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/inkdrop-cms?retryWrites=true&w=majority
+```
 
-## Learn More
+4. Run the development server
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 Project Structure
+```
+inkdrop-cms/
+├── src/
+│   ├── app/
+│   │   ├── api/content/          # API routes
+│   │   ├── dashboard/            # Content management UI
+│   │   └── new/                  # Create content page
+│   ├── components/               # React components
+│   ├── lib/                      # Database config & models
+│   └── types/                    # TypeScript types
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 Usage
 
-## Deploy on Vercel
+1. **Create Content** - Click "New Content" and fill in the form
+2. **Manage Content** - View all content in the dashboard
+3. **Edit Content** - Click "Edit" on any content card
+4. **Delete Content** - Click "Delete" to remove content
+5. **Publish** - Toggle between draft and published status
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy easily on Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<your-repo-url>)
+
+Don't forget to add your `MONGODB_URI` environment variable in Vercel settings.
+
+## 📝 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+---
+
+Built as part of my 6-month full-stack development journey 🚀
+
