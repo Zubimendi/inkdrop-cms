@@ -1,22 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ContentForm from '@/components/ContentForm';
 import { IContent } from '@/lib/models/Content';
 
-export default function EditContentPage({ params }: { params: { id: string } }) {
+export default function EditContentPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  // ✅ Unwrap params using React.use()
+  const { id } = use(params);
+  
   const router = useRouter();
   const [content, setContent] = useState<IContent | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchContent();
-  }, []);
+  }, [id]);
 
   const fetchContent = async () => {
     try {
-      const res = await fetch(`/api/content/${params.id}`);
+      const res = await fetch(`/api/content/${id}`);
       const data = await res.json();
       if (data.success) {
         setContent(data.data);
@@ -29,7 +36,7 @@ export default function EditContentPage({ params }: { params: { id: string } }) 
   const handleSubmit = async (data: any) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/content/${params.id}`, {
+      const res = await fetch(`/api/content/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
