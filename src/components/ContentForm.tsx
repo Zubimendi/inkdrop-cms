@@ -158,7 +158,7 @@ export default function ContentForm({
                 {formData.featuredImage && (
                   <Image
                     src={formData.featuredImage}
-                    alt={formData.title}
+                    alt={formData.title ?? ''} 
                     className="w-full h-64 object-cover rounded-lg mb-6"
                   />
                 )}
